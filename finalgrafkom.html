@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualisasi Nilai CPMK Mahasiswa</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    canvas, svg {
+      display: none;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    .buttons {
+      margin-bottom: 20px;
+    }
+    button {
+      margin: 0 10px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Visualisasi Nilai CPMK Mahasiswa</h2>
+  <div class="buttons">
+    <button onclick="showChart('bubble')">Bubble Chart</button>
+    <button onclick="showChart('radar')">Radar Chart</button>
+    <button onclick="showChart('waterfall')">Waterfall Chart</button>
+  </div>
+
+  <canvas id="bubbleChart" width="1400" height="600"></canvas>
+  <canvas id="radarCanvas" width="1400" height="750"></canvas>
+  <svg id="chart" width="1700" height="1500"></svg>
+
+  <script>
+    function showChart(type) {
+      document.getElementById("bubbleChart").style.display = type === "bubble" ? "block" : "none";
+      document.getElementById("radarCanvas").style.display = type === "radar" ? "block" : "none";
+      document.getElementById("chart").style.display = type === "waterfall" ? "block" : "none";
+      if (!window[type + "Drawn"]) {
+        window[type + "Drawn"] = true;
+        if (type === "bubble") drawBubbleChart();
+        if (type === "radar") drawRadarChart();
+        if (type === "waterfall") drawWaterfallChart();
+      }
+    }
+
+    // === DATA & WARNA ===
+    const mahasiswa = [
+    { id: "2101020014", nilai: [100, 90, 82, 80] },
+    { id: "2101020024", nilai: [100, 20, 66, 71] },
+    { id: "2101020048", nilai: [100, 90, 89, 73] },
+    { id: "2101020058", nilai: [100, 90, 83, 80] },
+    { id: "2101020074", nilai: [90, 60, 73, 64] },
+    { id: "2101020092", nilai: [100, 20, 71, 56] },
+    { id: "2101020103", nilai: [0, 0, 7.1, 15] },
+    { id: "2101020104", nilai: [90, 60, 64, 64] },
+    { id: "2101020117", nilai: [90, 60, 71, 64] },
+    { id: "2201020001", nilai: [100, 60, 76, 58] },
+    { id: "2201020002", nilai: [100, 80, 84, 71] },
+    { id: "2201020010", nilai: [100, 80, 94, 82] },
+    { id: "2201020014", nilai: [100, 60, 83, 65] },
+    { id: "2201020015", nilai: [100, 60, 80, 58] },
+    { id: "2201020018", nilai: [100, 70, 86, 80] },
+    { id: "2201020019", nilai: [100, 80, 93, 75] },
+    { id: "2201020022", nilai: [90, 20, 75, 45] },
+    { id: "2201020026", nilai: [100, 80, 84, 71] },
+    { id: "2201020032", nilai: [100, 80, 85, 67] },
+    { id: "2201020039", nilai: [100, 80, 82, 56] },
+    { id: "2201020041", nilai: [100, 80, 93, 75] },
+    { id: "2201020047", nilai: [100, 75, 64, 45] },
+    { id: "2201020048", nilai: [100, 70, 99, 80] },
+    { id: "2201020057", nilai: [100, 75, 72, 45] },
+    { id: "2201020063", nilai: [100, 76, 94, 80] },
+    { id: "2201020065", nilai: [100, 75, 89, 75] },
+    { id: "2201020066", nilai: [100, 60, 72, 53] },
+    { id: "2201020067", nilai: [100, 80, 92, 67] },
+    { id: "2201020070", nilai: [100, 75, 94, 84] },
+    { id: "2201020074", nilai: [100, 60, 62, 53] },
+    { id: "2201020075", nilai: [100, 80, 92, 75] },
+    { id: "2201020083", nilai: [100, 80, 88, 75] },
+    { id: "2201020086", nilai: [0, 0, 7.1, 0] },
+    { id: "2201020090", nilai: [100, 75, 97, 80] },
+    { id: "2201020091", nilai: [100, 80, 87, 75] },
+    { id: "2201020092", nilai: [100, 60, 76, 53] },
+    { id: "2201020093", nilai: [100, 75, 86, 72] },
+    { id: "2201020094", nilai: [100, 80, 92, 67] },
+    { id: "2201020095", nilai: [100, 75, 87, 72] },
+    { id: "2201020098", nilai: [100, 75, 69, 60] },
+    { id: "2201020099", nilai: [100, 80, 93, 82] },
+    { id: "2201020100", nilai: [100, 80, 86, 64] },
+    { id: "2201020103", nilai: [100, 70, 101, 80] },
+    { id: "2201020104", nilai: [100, 80, 86, 64] },
+    { id: "2201020105", nilai: [100, 70, 36, 60] },
+    { id: "2201020106", nilai: [90, 50, 67, 47] },
+    { id: "2201020109", nilai: [100, 80, 86, 64] },
+    { id: "2201020112", nilai: [90, 50, 69, 47] },
+    { id: "2201020116", nilai: [90, 50, 66, 40] },
+    { id: "2201020117", nilai: [100, 70, 73, 53] },
+    { id: "2201020118", nilai: [100, 80, 92, 82] },
+    { id: "2201020122", nilai: [100, 70, 71, 53] },
+    { id: "2201020123", nilai: [90, 20, 70, 53] }
+    ];
+    const colors = [
+      "red", "orange", "yellow", "green", "blue", "indigo", "violet", "pink", "brown", "gray", "cyan", "magenta",
+      "lightgreen", "darkblue", "lightpink", "darkgreen", "lightblue", "lightyellow", "teal", "gold", "salmon",
+      "lime", "orchid", "peach", "purple", "tan", "crimson", "seagreen", "azure", "saddlebrown", "khaki", "lavender",
+      "darkred", "chartreuse", "darkorange", "fuchsia", "coral", "mediumvioletred", "midnightblue", "lightcoral",
+      "darkviolet", "darkslategray", "darkturquoise", "hotpink", "lightseagreen", "mediumturquoise", "steelblue",
+      "wheat", "peru", "powderblue", "lightgreen", "lightcyan", "yellowgreen", "lightsalmon", "blueviolet",
+      "mediumseagreen", "forestgreen", "paleturquoise", "mediumslateblue", "mediumorchid"
+    ];
+
+    // === BUBBLE CHART ===
+    function drawBubbleChart() {
+        const canvas = document.getElementById("bubbleChart");
+        const ctx = canvas.getContext("2d");
+        const xPositions = [150, 350, 550, 750];
+        const cpmkLabels = ["CPMK012", "CPMK031", "CPMK071", "CPMK072"];
+      
+        ctx.beginPath();
+        ctx.moveTo(100, 500); ctx.lineTo(900, 500);
+        ctx.moveTo(100, 500); ctx.lineTo(100, 50);
+        ctx.stroke();
+      
+        cpmkLabels.forEach((label, i) => {
+          ctx.save();
+          ctx.translate(xPositions[i], 520);
+          ctx.rotate(-0.4);
+          ctx.fillText(label, 0, 0);
+          ctx.restore();
+        });
+      
+        for (let y = 0; y <= 100; y += 20) {
+          const ypos = 500 - y * 4;
+          ctx.fillText(y, 70, ypos + 4);
+          ctx.beginPath();
+          ctx.moveTo(95, ypos); ctx.lineTo(900, ypos);
+          ctx.strokeStyle = '#eee';
+          ctx.stroke();
+        }
+      
+        mahasiswa.forEach((mhs, index) => {
+          for (let i = 0; i < 4; i++) {
+            const x = xPositions[i];
+            const y = 500 - mhs.nilai[i] * 4;
+            const radius = 5 + (mhs.nilai[i] / 10);
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = colors[index];
+            ctx.fill();
+            ctx.strokeStyle = "#333";
+            ctx.stroke();
+          }
+        });
+      
+        // Menambahkan ID mahasiswa dengan 20 ID per baris
+        const idsPerRow = 4;  // Jumlah ID per baris
+        const startX = 850;     // Posisi X untuk mulai menulis ID
+        const startY = 60;      // Posisi Y awal untuk NIM
+        const spacingX = 150;   // Jarak horizontal antar ID
+        const spacingY = 20;    // Jarak vertikal antar baris
+      
+        mahasiswa.forEach((mhs, i) => {
+          const row = Math.floor(i / idsPerRow);  // Menentukan baris berdasarkan urutan NIM
+          const col = i % idsPerRow;  // Menentukan kolom berdasarkan urutan NIM
+      
+          const x = startX + col * spacingX;  // Menentukan posisi horizontal
+          const y = startY + row * spacingY;  // Menentukan posisi vertikal
+      
+          ctx.fillStyle = colors[i];
+          ctx.beginPath();
+          ctx.arc(x, y, 7, 0, 2 * Math.PI);  // Gambar lingkaran kecil untuk warna
+          ctx.fill();
+          ctx.fillStyle = "#000";
+          ctx.fillText("ID " + mhs.id, x + 12, y + 4);  // Tampilkan NIM
+        });
+      }
+      
+
+    // === RADAR CHART ===
+    function drawRadarChart() {
+      const canvas = document.getElementById("radarCanvas");
+      const ctx = canvas.getContext("2d");
+      const centerX = 450, centerY = 400, maxRadius = 200;
+      const labels = ["CPMK012", "CPMK031", "CPMK071", "CPMK072"];
+      const step = 20;
+
+      function drawSpiderWeb() {
+        ctx.strokeStyle = "#ccc";
+        for (let s = step; s <= 100; s += step) {
+          const r = (s / 100) * maxRadius;
+          ctx.beginPath();
+          for (let i = 0; i <= labels.length; i++) {
+            const angle = (Math.PI * 2 / labels.length) * i;
+            const x = centerX + r * Math.cos(angle - Math.PI / 2);
+            const y = centerY + r * Math.sin(angle - Math.PI / 2);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.fillStyle = "#666";
+          ctx.fillText(s.toString(), centerX + 5, centerY - r - 2);
+        }
+
+        for (let i = 0; i < labels.length; i++) {
+          const angle = (Math.PI * 2 / labels.length) * i;
+          const x = centerX + maxRadius * Math.cos(angle - Math.PI / 2);
+          const y = centerY + maxRadius * Math.sin(angle - Math.PI / 2);
+          ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(x, y); ctx.stroke();
+
+          const lx = centerX + (maxRadius + 20) * Math.cos(angle - Math.PI / 2);
+          const ly = centerY + (maxRadius + 20) * Math.sin(angle - Math.PI / 2);
+          ctx.fillStyle = "black";
+          ctx.fillText(labels[i], lx - 20, ly);
+        }
+      }
+
+      function drawRadarLine(nilai, color) {
+        ctx.beginPath();
+        for (let i = 0; i <= nilai.length; i++) {
+          const angle = (Math.PI * 2 / nilai.length) * i;
+          const val = nilai[i % nilai.length];
+          const r = (val / 100) * maxRadius;
+          const x = centerX + r * Math.cos(angle - Math.PI / 2);
+          const y = centerY + r * Math.sin(angle - Math.PI / 2);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+
+        for (let i = 0; i < nilai.length; i++) {
+          const angle = (Math.PI * 2 / nilai.length) * i;
+          const r = (nilai[i] / 100) * maxRadius;
+          const x = centerX + r * Math.cos(angle - Math.PI / 2);
+          const y = centerY + r * Math.sin(angle - Math.PI / 2);
+          ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+        }
+      }
+
+      function drawLegend() {
+        const itemsPerRow = 4;
+        const startX = 860;
+        const startY = 55;
+        const itemSpacingX = 120;
+        const itemSpacingY = 25;
+      
+        mahasiswa.forEach((mhs, i) => {
+          const col = i % itemsPerRow;
+          const row = Math.floor(i / itemsPerRow);
+          const x = startX + col * itemSpacingX;
+          const y = startY + row * itemSpacingY;
+      
+          ctx.fillStyle = colors[i];
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fill();
+      
+          ctx.fillStyle = "#000";
+          ctx.font = "12px Arial";
+          ctx.fillText("ID " + mhs.id, x + 12, y + 4);
+        });
+      }
+      
+
+      drawSpiderWeb();
+      mahasiswa.forEach((m, i) => drawRadarLine(m.nilai, colors[i]));
+      drawLegend();
+    }
+
+    // === WATERFALL CHART ===
+    function drawWaterfallChart() {
+      const svg = document.getElementById('chart');
+      const width = svg.clientWidth, height = svg.clientHeight;
+      const padding = 60, chartHeight = height - 2 * padding, chartWidth = width - 200;
+      const maxY = 360;
+      const xSpacing = chartWidth / 3;
+      const cpmkLabels = ['CPMK_012', 'CPMK_031', 'CPMK_071', 'CPMK_072'];
+
+      for (let i = 0; i <= 6; i++) {
+        const y = padding + chartHeight - (i / 6) * chartHeight;
+        const val = Math.round((i / 6) * maxY);
+        svg.insertAdjacentHTML('beforeend', `
+          <line x1="${padding}" x2="${width - padding}" y1="${y}" y2="${y}" stroke="#ccc"/>
+          <text x="${padding - 10}" y="${y + 4}" text-anchor="end" class="label">${val}</text>
+        `);
+      }
+
+      cpmkLabels.forEach((label, i) => {
+        const x = padding + i * xSpacing;
+        svg.insertAdjacentHTML('beforeend', `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" class="label">${label}</text>`);
+      });
+
+      mahasiswa.forEach((mhs, idx) => {
+        const color = colors[idx % colors.length];
+        let cumulative = 0, prevX = null, prevY = null;
+
+        mhs.nilai.forEach((nilai, i) => {
+          cumulative += nilai;
+          const x = padding + i * xSpacing;
+          const y = padding + chartHeight - (cumulative / maxY) * chartHeight;
+
+          svg.insertAdjacentHTML('beforeend', `<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`);
+
+          if (prevX !== null && prevY !== null) {
+            svg.insertAdjacentHTML('beforeend', `<line x1="${prevX}" y1="${prevY}" x2="${x}" y2="${y}" stroke="${color}" stroke-dasharray="4 2"/>`);
+          }
+
+          prevX = x; prevY = y;
+        });
+
+        const legendY = padding + idx * 24, legendX = width - 130;
+        svg.insertAdjacentHTML('beforeend', `
+          <rect x="${legendX}" y="${legendY - 10}" width="10" height="10" fill="${color}"/>
+          <text x="${legendX + 15}" y="${legendY}" alignment-baseline="middle" class="legend">ID ${mhs.id}</text>
+        `);
+      });
+    }
+
+    // Auto-tampilkan grafik pertama saat load
+    showChart('bubble');
+  </script>
+</body>
+</html>
